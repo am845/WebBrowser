@@ -1,0 +1,65 @@
+import QtQuick 2.12
+import QtWebEngine 5.12
+import QtQuick.Controls 2.12
+import QtQuick.Layouts 1.12
+
+ApplicationWindow {
+    id:browserWindow
+    title: webView.title
+    visible: true
+    width: 1200
+    height: 800
+
+    header: ToolBar {
+            anchors.fill: parent.header
+            spacing: 0
+            ToolButton {
+                id: backButton
+                onClicked: webView.goBack()
+                text: qsTr("<")
+                anchors.left: parent.left
+            }
+            ToolButton {
+                id: forwardButton
+                onClicked: webView.goForward()
+                text: qsTr(">")
+                anchors.left: backButton.right
+            }
+            ToolButton {
+                id: reloadButton
+                onClicked: webView.reload()
+                icon.source: "icons/reload.png"
+                icon.height: backButton.layer.textureSize
+                anchors.left: forwardButton.right
+            }
+            TextField {
+                text: webView.url
+                onAccepted: webView.url = this.text
+                background: parent.background
+                horizontalAlignment: TextInput.AlignHCenter
+                maximumLength: 80
+                anchors {
+                    horizontalCenter: parent.horizontalCenter
+                    verticalCenter: parent.verticalCenter
+                    left: reloadButton.right
+                }
+
+            }
+    }
+    TabView {
+        id: tabView
+        anchors.fill: parent
+        WebEngineView {
+            id: webView
+            anchors.fill: parent
+            url: "https://www.rutilea.com"
+            onNewViewRequested: function(request){
+                if(request.destination === WebEngineView.NewViewInTab) {
+                    var tab = tabView.addTab("",)
+                }
+            }
+        }
+    }
+
+
+}
