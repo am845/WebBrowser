@@ -10,18 +10,19 @@ ApplicationWindow {
     width: 1200
     height: 800
 
-    header: ToolBar {
+    menuBar: ToolBar {
+            id: toolBar
             anchors.fill: parent.header
             spacing: 0
             ToolButton {
                 id: backButton
-                onClicked: webView.goBack()
+                onClicked: layout.children[layout.currentIndex].goBack()
                 text: qsTr("<")
                 anchors.left: parent.left
             }
             ToolButton {
                 id: forwardButton
-                onClicked: webView.goForward()
+                onClicked: layout.children[layout.currentIndex].goForward()
                 text: qsTr(">")
                 anchors.left: backButton.right
             }
@@ -34,8 +35,9 @@ ApplicationWindow {
                 anchors.left: forwardButton.right
             }
             TextField {
-                text: layout.visibleChildren[0].url
-                onAccepted: layout.children[0].url = this.text
+                //text: layout.children[layout.currentIndex].url
+                text: layout.children[layout.currentIndex].url
+                onAccepted: layout.children[layout.currentIndex].url = this.text
                 //background: parent.background
                 horizontalAlignment: TextInput.AlignHCenter
                 maximumLength: 80
@@ -47,35 +49,74 @@ ApplicationWindow {
 
             }
     }
-    TabBar {
-        id: tabBar
-        anchors.top: parent.top
-        //TabButton {
-        //    text: webView.title
-        //}
-        TabButton {
-            text: "+"
-            anchors.right: parent.right
-        }
+//    header: Item {
+//        id: test
+
+//        id: rowLayout
+
+//        Button {
+//            id: newTab
+
+//            height: tabBar.height
+//            width: 10
+//            text: "+"
+//            anchors{
+//                right: parent.right
+//                left: tabBar.right
+//            }
+//            onClicked: {
+//                var newView = tabBar.addNewTab()
+//                newView.url = "https://www.rutilea.com"
+//                //browserWindow.title = Qt.binding(function(){return layout.children[layout.currnetIndex].title})
+//                browserWindow.title = Qt.binding(function(){return newView.title})
+//            }
+//        }
+        TabBar {
+            id: tabBar
+            anchors {
+                left: parent.left
+//                right: newTab.left
+                right: parent.right
+            }
+
+//            TabButton {
+//                text: webView.title
+//            }
+//            TabButton {
+//                text: "+"
+//                anchors.right: parent.right
+//                //TabBar.index: parent.count - 1
+//                onClicked: {
+//                    var newView = tabBar.addNewTab()
+//                    newView.url = "https://www.rutilea.com"
+//                    //parent.currentIndex += 1
+//                    parent.currentIndex = parent.count
+//                }
+//            }
 
 
-        function addNewTab() {
-            //var newViewComponent = Qt.createComponent(browserComponent)
-            //if(newViewComponent.status === Component.Ready)
-            var newView = browserComponent.createObject(layout)
-            //newView.url =
-            //newView.webView.url = url
-            var tabButton = tabButtonComponent.createObject(tabBar)
-            return newView
-        }
+            function addNewTab() {
+                //var newViewComponent = Qt.createComponent(browserComponent)
+                //if(newViewComponent.status === Component.Ready)
+                var newView = browserComponent.createObject(layout)
+                //newView.url =
+                //newView.webView.url = url
+                var tabButton = tabButtonComponent.createObject(this)
+                tabButton.text = Qt.binding(function(){return newView.title})
+                return newView
+            }
 
-        Component.onCompleted: {
-            var newView = addNewTab()
-            newView.url = "https://www.rutilea.com"
-            browserWindow.title = Qt.binding(function(){return layout.visibleChildren[0].title})
-            currentIndex = count - 2
+            Component.onCompleted: {
+                var newView = addNewTab()
+                newView.url = "https://www.rutilea.com"
+                //browserWindow.title = Qt.binding(function(){return layout.children[layout.currnetIndex].title})
+                browserWindow.title = Qt.binding(function(){return newView.title})
+                //tabBar.incrementCurrentIndex()
+            }
         }
-    }
+//    }
+
+
     StackLayout {
         id: layout
         anchors {
@@ -89,13 +130,14 @@ ApplicationWindow {
             id: browserComponent
             WebEngineView {
                 id: webView
-                anchors.fill: parent
+                //anchors.fill: parent
                 url: "https://www.rutilea.com"
                 onNewViewRequested: function(request){
                     if(request.destination === WebEngineView.NewViewInTab) {
                         var webView = tabBar.addNewTab()
                         request.openIn(webView)
-                        tabBar.currentIndex += 1
+                        //tabBar.currentIndex += 1
+                        tabBar.incrementCurrentIndex()
                     }
                 }
             }
@@ -103,7 +145,29 @@ ApplicationWindow {
         Component {
             id: tabButtonComponent
             TabButton{
-                text: Qt.binding(function(){return layout.visibleChildren[0].title})
+                id:tabButton
+                //text: Qt.binding(function(){return layout.visibleChildren[0].title})
+                contentItem:Item {
+                    Text {
+                        id: tabButtonText
+                        elide: Text.ElideRight
+                        anchors{
+                            left: parent.left
+                            right: closeButton.left
+                        }
+                        text:  tabButton.text
+                    }
+                    Button {
+                        id:closeButton
+                        implicitHeight: parent.height
+                        implicitWidth: this.height
+                        anchors.right: parent.right
+                        text: "x"
+                        onClicked: tabBar.removeItem(tabButton)
+                    }
+                }
+
+
             }
         }
     }
